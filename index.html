@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Operaciones Globetek | WOM</title>
+  <!-- Tailwind CSS para diseño moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js para gráficos interactivos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --wom-purple-dark: #4B116F;
+      --wom-purple: #781C9E;
+      --wom-magenta: #E6007E;
+      --wom-bg: #F6F4F9;
+    }
+    body {
+      background-color: var(--wom-bg);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    .wom-header {
+      background: linear-gradient(135deg, #4B116F 0%, #781C9E 65%, #E6007E 100%);
+    }
+    .wom-card {
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(75, 17, 111, 0.06);
+      border: 1px solid rgba(120, 28, 158, 0.1);
+    }
+    .wom-input:focus {
+      outline: none;
+      border-color: #E6007E;
+      box-shadow: 0 0 0 3px rgba(230, 0, 126, 0.15);
+    }
+    /* Scrollbar estilizada */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1edf5; }
+    ::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4B116F; }
+  </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+  <!-- Barra Superior Corporativa WOM -->
+  <header class="wom-header text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-[#4B116F] font-black text-2xl px-3 py-1 rounded-lg tracking-tighter shadow">
+          WOM
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">Control de Carga Globetek</h1>
+          <p class="text-xs text-purple-200">Consolidado de Equipos Homologados desde Google Drive</p>
+        </div>
+      </div>
+
+      <!-- Navegación de Vistas (Lista para escalar a futuros paneles) -->
+      <nav class="flex items-center gap-2 bg-black/20 p-1 rounded-lg">
+        <button class="px-4 py-1.5 rounded-md bg-[#E6007E] text-white text-sm font-semibold shadow">
+          1. Carga Globetek
+        </button>
+        <button disabled class="px-4 py-1.5 rounded-md text-purple-200/60 text-sm font-medium cursor-not-allowed" title="Próxima vista">
+          2. Stock Histórico (Pronto)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Alerta de Estado de Carga -->
+    <div id="statusBanner" class="wom-card p-4 flex items-center justify-between border-l-4 border-[#E6007E]">
+      <div class="flex items-center gap-3">
+        <div id="spinner" class="animate-spin rounded-full h-5 w-5 border-2 border-[#E6007E] border-t-transparent"></div>
+        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con carpeta de Google Drive y consolidando archivos CSV...</span>
+      </div>
+      <button onclick="cargarDatos()" class="text-xs font-semibold text-[#E6007E] hover:underline">
+        ↻ Actualizar datos
+      </button>
+    </div>
+
+    <!-- Sección de Filtros Temporales y Buscadores Dinámicos -->
+    <section class="wom-card p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
+          <span>🔍</span> Filtros Dinámicos (Búsqueda en Cascada)
+        </h2>
+        <button onclick="limpiarFiltros()" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition">
+          Limpiar todos los filtros
+        </button>
+      </div>
+
+      <!-- Fila 1: Filtros de Tiempo (Año, Mes, Semana, Fecha exacta) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
+        <div>
+          <label class="block text-xs font-bold text-[#4B116F] mb-1">Año</label>
+          <select id="filtroAnio" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+            <option value="">Todos los años</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#4B116F] mb-1">Mes</label>
+          <select id="filtroMes" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+            <option value="">Todos los meses</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#4B116F] mb-1">Semana del Año</label>
+          <select id="filtroSemana" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+            <option value="">Todas las semanas</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#4B116F] mb-1">Fecha de Carga</label>
+          <select id="filtroFecha" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+            <option value="">Todas las fechas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Fila 2: Buscadores Predictivos (SKU, DESCRIPCION, MARCA, ORG, IMEI) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Marca</label>
+          <input type="text" id="filtroMarca" list="listMarca" placeholder="Ej: Samsung, Honor..."
+                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+          <datalist id="listMarca"></datalist>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">SKU (ej. 2014)</label>
+          <input type="text" id="filtroSKU" list="listSKU" placeholder="Escribe parte del SKU..."
+                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+          <datalist id="listSKU"></datalist>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Descripción</label>
+          <input type="text" id="filtroDesc" list="listDesc" placeholder="Modelo o color..."
+                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+          <datalist id="listDesc"></datalist>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">ORG</label>
+          <input type="text" id="filtroOrg" list="listOrg" placeholder="Ej: W01, W02..."
+                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+          <datalist id="listOrg"></datalist>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
+          <input type="text" id="filtroImei" list="listImei" placeholder="Buscar IMEI..."
+                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+          <datalist id="listImei"></datalist>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tarjetas de Indicadores (KPIs) -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+        <p class="text-xs font-bold uppercase text-gray-400">Equipos Cargados</p>
+        <p id="kpiTotalEquipos" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+        <p class="text-xs text-gray-500 mt-1">Unidades totales filtradas</p>
+      </div>
+      <div class="wom-card p-5 border-t-4 border-[#781C9E]">
+        <p class="text-xs font-bold uppercase text-gray-400">Marcas Activas</p>
+        <p id="kpiTotalMarcas" class="text-3xl font-black text-[#781C9E] mt-1">0</p>
+        <p class="text-xs text-gray-500 mt-1">Fabricantes en selección</p>
+      </div>
+      <div class="wom-card p-5 border-t-4 border-[#4B116F]">
+        <p class="text-xs font-bold uppercase text-gray-400">SKUs Únicos</p>
+        <p id="kpiTotalSKUs" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+        <p class="text-xs text-gray-500 mt-1">Modelos/variantes distintas</p>
+      </div>
+      <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+        <p class="text-xs font-bold uppercase text-gray-400">Organizaciones (ORG)</p>
+        <p id="kpiTotalOrgs" class="text-3xl font-black text-[#E6007E] mt-1">0</p>
+        <p class="text-xs text-gray-500 mt-1">Centros operativos involucrados</p>
+      </div>
+    </section>
+
+    <!-- Sección de Gráficos Dinámicos -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="wom-card p-5 lg:col-span-2">
+        <h3 class="text-sm font-bold text-[#4B116F] mb-3">Cantidad de Equipos Cargados por Marca</h3>
+        <div class="h-64">
+          <canvas id="chartMarcas"></canvas>
+        </div>
+      </div>
+      <div class="wom-card p-5">
+        <h3 class="text-sm font-bold text-[#4B116F] mb-3">Distribución por Organización (ORG)</h3>
+        <div class="h-64">
+          <canvas id="chartOrg"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla de Detalle de Equipos -->
+    <section class="wom-card overflow-hidden">
+      <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h3 class="text-sm font-bold text-[#4B116F]">Detalle de Equipos para Carga Globetek</h3>
+          <p id="tablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
+        </div>
+        <button onclick="exportarCSVFiltrado()" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
+          ⬇ Descargar vista filtrada (.CSV)
+        </button>
+      </div>
+
+      <div class="overflow-x-auto max-h-[520px]">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-[#4B116F] text-white sticky top-0 z-10">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">SKU</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Marca</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">ORG</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Subinventario</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">IMEI</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Carga</th>
+            </tr>
+          </thead>
+          <tbody id="tablaCuerpo" class="bg-white divide-y divide-gray-100">
+            <!-- Filas renderizadas dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación para fluidez con miles de IMEIs -->
+      <div class="p-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
+        <span id="infoPagina">Página 1 de 1</span>
+        <div class="flex gap-2">
+          <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Anterior</button>
+          <button id="btnNext" onclick="cambiarPagina(1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Siguiente</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // URL de tu Aplicación Web de Google Apps Script
+    const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/wom.cl/s/AKfycbwcja0qQAlOQH3Bkk5oiX9lcukPBlwYsWFJBaea6Btnhn0VO4twJA042qrsHhSOR7ABiw/exec';
+
+    let datosOriginales = [];
+    let datosFiltrados = [];
+    let paginaActual = 1;
+    const filasPorPagina = 100;
+    let chartMarcasInstance = null;
+    let chartOrgInstance = null;
+
+    const nombresMeses = {
+      '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
+      '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto',
+      '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
+    };
+
+    // Calcular semana ISO a partir de DD-MM-YYYY
+    function obtenerInfoFecha(fechaStr) {
+      if (!fechaStr) return { anio: '', mes: '', semana: '', fecha: '' };
+      const partes = fechaStr.split('-');
+      if (partes.length !== 3) return { anio: '', mes: '', semana: '', fecha: fechaStr };
+      const dia = parseInt(partes[0], 10);
+      const mes = partes[1];
+      const anio = partes[2];
+      const dateObj = new Date(Date.UTC(parseInt(anio, 10), parseInt(mes, 10) - 1, dia));
+      const dayNum = dateObj.getUTCDay() || 7;
+      dateObj.setUTCDate(dateObj.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(dateObj.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((dateObj - yearStart) / 86400000) + 1) / 7);
+      return {
+        anio: anio,
+        mes: `${mes} - ${nombresMeses[mes] || mes}`,
+        semana: `Semana ${String(weekNo).padStart(2, '0')}`,
+        fecha: fechaStr
+      };
+    }
+
+    async function cargarDatos() {
+      const spinner = document.getElementById('spinner');
+      const statusText = document.getElementById('statusText');
+      spinner.style.display = 'block';
+      statusText.textContent = 'Descargando y consolidando archivos CSV desde Google Drive...';
+
+      try {
+        const resp = await fetch(APPS_SCRIPT_URL);
+        const json = await resp.json();
+
+        datosOriginales = json.map(row => {
+          const infoFecha = obtenerInfoFecha(row.Fecha_Carga);
+          return { ...row, ...infoFecha };
+        });
+
+        spinner.style.display = 'none';
+        statusText.innerHTML = `✅ <b>Conectado:</b> ${datosOriginales.length.toLocaleString('es-CL')} equipos consolidados desde Google Drive.`;
+        aplicarFiltros();
+      } catch (err) {
+        spinner.style.display = 'none';
+        statusText.innerHTML = `❌ <b>Error al conectar con Google Drive:</b> Verifica que tengas iniciada tu sesión @wom.cl en este navegador y los permisos en Apps Script (${err.message}).`;
+      }
+    }
+
+    function aplicarFiltros() {
+      const vAnio = document.getElementById('filtroAnio').value;
+      const vMes = document.getElementById('filtroMes').value;
+      const vSemana = document.getElementById('filtroSemana').value;
+      const vFecha = document.getElementById('filtroFecha').value;
+
+      const vMarca = document.getElementById('filtroMarca').value.trim().toLowerCase();
+      const vSKU = document.getElementById('filtroSKU').value.trim().toLowerCase();
+      const vDesc = document.getElementById('filtroDesc').value.trim().toLowerCase();
+      const vOrg = document.getElementById('filtroOrg').value.trim().toLowerCase();
+      const vImei = document.getElementById('filtroImei').value.trim().toLowerCase();
+
+      datosFiltrados = datosOriginales.filter(item => {
+        if (vAnio && item.anio !== vAnio) return false;
+        if (vMes && item.mes !== vMes) return false;
+        if (vSemana && item.semana !== vSemana) return false;
+        if (vFecha && item.fecha !== vFecha) return false;
+
+        if (vMarca && !String(item.MARCA).toLowerCase().includes(vMarca)) return false;
+        if (vSKU && !String(item.SKU).toLowerCase().includes(vSKU)) return false;
+        if (vDesc && !String(item.DESCRIPCION).toLowerCase().includes(vDesc)) return false;
+        if (vOrg && !String(item.ORG).toLowerCase().includes(vOrg)) return false;
+        if (vImei && !String(item.IMEI).toLowerCase().includes(vImei)) return false;
+
+        return true;
+      });
+
+      actualizarOpcionesDinamicas();
+      actualizarKPIs();
+      actualizarGraficos();
+      paginaActual = 1;
+      renderizarTabla();
+    }
+
+    // Actualiza en cascada las opciones disponibles en cada filtro según lo ya filtrado
+    function actualizarOpcionesDinamicas() {
+      poblarSelect('filtroAnio', [...new Set(datosFiltrados.map(d => d.anio).filter(Boolean))].sort());
+      poblarSelect('filtroMes', [...new Set(datosFiltrados.map(d => d.mes).filter(Boolean))].sort());
+      poblarSelect('filtroSemana', [...new Set(datosFiltrados.map(d => d.semana).filter(Boolean))].sort());
+      poblarSelect('filtroFecha', [...new Set(datosFiltrados.map(d => d.fecha).filter(Boolean))]);
+
+      poblarDatalist('listMarca', [...new Set(datosFiltrados.map(d => d.MARCA).filter(Boolean))].sort());
+      poblarDatalist('listSKU', [...new Set(datosFiltrados.map(d => d.SKU).filter(Boolean))].sort().slice(0, 300));
+      poblarDatalist('listDesc', [...new Set(datosFiltrados.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
+      poblarDatalist('listOrg', [...new Set(datosFiltrados.map(d => d.ORG).filter(Boolean))].sort());
+      poblarDatalist('listImei', [...new Set(datosFiltrados.map(d => d.IMEI).filter(Boolean))].slice(0, 150));
+    }
+
+    function poblarSelect(id, opciones) {
+      const sel = document.getElementById(id);
+      const valActual = sel.value;
+      const textoDefault = sel.options[0].text;
+      sel.innerHTML = `<option value="">${textoDefault}</option>`;
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        opt.textContent = op;
+        if (op === valActual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function poblarDatalist(id, opciones) {
+      const dl = document.getElementById(id);
+      dl.innerHTML = '';
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        dl.appendChild(opt);
+      });
+    }
+
+    function actualizarKPIs() {
+      document.getElementById('kpiTotalEquipos').textContent = datosFiltrados.length.toLocaleString('es-CL');
+      document.getElementById('kpiTotalMarcas').textContent = new Set(datosFiltrados.map(d => d.MARCA).filter(Boolean)).size;
+      document.getElementById('kpiTotalSKUs').textContent = new Set(datosFiltrados.map(d => d.SKU).filter(Boolean)).size;
+      document.getElementById('kpiTotalOrgs').textContent = new Set(datosFiltrados.map(d => d.ORG).filter(Boolean)).size;
+    }
+
+    function actualizarGraficos() {
+      const conteoMarca = {};
+      const conteoOrg = {};
+      datosFiltrados.forEach(d => {
+        const m = d.MARCA || 'Sin marca';
+        const o = d.ORG || 'Sin ORG';
+        conteoMarca[m] = (conteoMarca[m] || 0) + 1;
+        conteoOrg[o] = (conteoOrg[o] || 0) + 1;
+      });
+
+      const marcasOrdenadas = Object.entries(conteoMarca).sort((a, b) => b[1] - a[1]);
+      const labelsMarca = marcasOrdenadas.map(x => x[0]);
+      const valuesMarca = marcasOrdenadas.map(x => x[1]);
+
+      if (chartMarcasInstance) chartMarcasInstance.destroy();
+      chartMarcasInstance = new Chart(document.getElementById('chartMarcas'), {
+        type: 'bar',
+        data: {
+          labels: labelsMarca,
+          datasets: [{
+            label: 'Equipos Cargados',
+            data: valuesMarca,
+            backgroundColor: '#781C9E',
+            hoverBackgroundColor: '#E6007E',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      const orgsOrdenadas = Object.entries(conteoOrg).sort((a, b) => b[1] - a[1]);
+      if (chartOrgInstance) chartOrgInstance.destroy();
+      chartOrgInstance = new Chart(document.getElementById('chartOrg'), {
+        type: 'doughnut',
+        data: {
+          labels: orgsOrdenadas.map(x => x[0]),
+          datasets: [{
+            data: orgsOrdenadas.map(x => x[1]),
+            backgroundColor: ['#4B116F', '#E6007E', '#781C9E', '#A855F7', '#F472B6', '#C084FC']
+          }]
+        },
+        options
