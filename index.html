@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portal Operaciones Globetek | WOM</title>
-  <!-- Tailwind CSS para diseño moderno -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js para gráficos interactivos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -33,7 +31,6 @@
       border-color: #E6007E;
       box-shadow: 0 0 0 3px rgba(230, 0, 126, 0.15);
     }
-    /* Scrollbar estilizada */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: #f1edf5; }
     ::-webkit-scrollbar-thumb { background: #9b59b6; border-radius: 4px; }
@@ -44,24 +41,29 @@
 
   <!-- Barra Superior Corporativa WOM -->
   <header class="wom-header text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="bg-white text-[#4B116F] font-black text-2xl px-3 py-1 rounded-lg tracking-tighter shadow">
           WOM
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">Control de Carga Globetek</h1>
-          <p class="text-xs text-purple-200">Consolidado de Equipos Homologados desde Google Drive</p>
+          <h1 class="text-xl font-bold tracking-tight">Portal Operaciones Globetek</h1>
+          <p class="text-xs text-purple-200">Gestión de Homologación y Cargas en Plataforma</p>
         </div>
       </div>
 
-      <!-- Navegación de Vistas (Lista para escalar a futuros paneles) -->
-      <nav class="flex items-center gap-2 bg-black/20 p-1 rounded-lg">
-        <button class="px-4 py-1.5 rounded-md bg-[#E6007E] text-white text-sm font-semibold shadow">
+      <!-- Navegación entre Vistas -->
+      <nav class="flex flex-wrap items-center gap-2 bg-black/25 p-1.5 rounded-xl">
+        <button id="tabBtn1" onclick="cambiarVista('vista1')"
+                class="px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition">
           1. Carga Globetek
         </button>
-        <button disabled class="px-4 py-1.5 rounded-md text-purple-200/60 text-sm font-medium cursor-not-allowed" title="Próxima vista">
-          2. Stock Histórico (Pronto)
+        <button id="tabBtn2" onclick="cambiarVista('vista2')"
+                class="px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition">
+          2. Equipos Cargados
+        </button>
+        <button disabled class="px-4 py-1.5 rounded-lg text-purple-200/50 text-sm font-medium cursor-not-allowed">
+          3. Stock Histórico (Pronto)
         </button>
       </nav>
     </div>
@@ -73,180 +75,316 @@
     <div id="statusBanner" class="wom-card p-4 flex items-center justify-between border-l-4 border-[#E6007E]">
       <div class="flex items-center gap-3">
         <div id="spinner" class="animate-spin rounded-full h-5 w-5 border-2 border-[#E6007E] border-t-transparent"></div>
-        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con carpeta de Google Drive y consolidando archivos CSV...</span>
+        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con Google Drive y maestro de ORGs...</span>
       </div>
       <button onclick="cargarDatos()" class="text-xs font-semibold text-[#E6007E] hover:underline shrink-0 ml-4">
         ↻ Actualizar datos
       </button>
     </div>
 
-    <!-- Sección de Filtros Temporales y Buscadores Dinámicos -->
-    <section class="wom-card p-5 space-y-4">
-      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
-          <span>🔍</span> Filtros Dinámicos (Búsqueda en Cascada)
-        </h2>
-        <button onclick="limpiarFiltros()" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition">
-          Limpiar todos los filtros
-        </button>
-      </div>
+    <!-- ===================================================================== -->
+    <!-- VISTA 1: 1. CARGA GLOBETEK (Último archivo + Etiqueta de fecha)        -->
+    <!-- ===================================================================== -->
+    <div id="vista1" class="space-y-6">
+      <section class="wom-card p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
+              <span>🔍</span> Filtros Dinámicos (Búsqueda en Cascada)
+            </h2>
+            <!-- Etiqueta mostrando la fecha del archivo escogido -->
+            <span class="inline-flex items-center gap-1.5 bg-[#4B116F] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+              <span>📅 Fecha Archivo Seleccionado:</span>
+              <span id="v1EtiquetaFecha" class="text-[#FF85C8]">--/--/----</span>
+            </span>
+          </div>
+          <button onclick="limpiarFiltros('v1')" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition self-start sm:self-auto">
+            Limpiar filtros
+          </button>
+        </div>
 
-      <!-- Fila 1: Filtros de Tiempo (Año, Mes, Semana, Fecha exacta) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
-        <div>
-          <label class="block text-xs font-bold text-[#4B116F] mb-1">Año</label>
-          <select id="filtroAnio" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
-            <option value="">Todos los años</option>
-          </select>
+        <!-- Buscadores Predictivos Vista 1 (incluye Tipo de ORG) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
+            <input type="text" id="v1FiltroTipoOrg" list="v1ListTipoOrg" placeholder="Tienda, Bodega..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListTipoOrg"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">ORG</label>
+            <input type="text" id="v1FiltroOrg" list="v1ListOrg" placeholder="Ej: W01, W02..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListOrg"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Marca</label>
+            <input type="text" id="v1FiltroMarca" list="v1ListMarca" placeholder="Ej: Samsung, Honor..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListMarca"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">SKU (ej. 2014)</label>
+            <input type="text" id="v1FiltroSKU" list="v1ListSKU" placeholder="Parte del SKU..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListSKU"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Descripción</label>
+            <input type="text" id="v1FiltroDesc" list="v1ListDesc" placeholder="Modelo o color..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListDesc"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
+            <input type="text" id="v1FiltroImei" list="v1ListImei" placeholder="Buscar IMEI..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v1ListImei"></datalist>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-[#4B116F] mb-1">Mes</label>
-          <select id="filtroMes" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
-            <option value="">Todos los meses</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-[#4B116F] mb-1">Semana del Año</label>
-          <select id="filtroSemana" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
-            <option value="">Todas las semanas</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-[#4B116F] mb-1">Fecha de Carga</label>
-          <select id="filtroFecha" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
-            <option value="">Todas las fechas</option>
-          </select>
-        </div>
-      </div>
+      </section>
 
-      <!-- Fila 2: Buscadores Predictivos (SKU, DESCRIPCION, MARCA, ORG, IMEI) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Marca</label>
-          <input type="text" id="filtroMarca" list="listMarca" placeholder="Ej: Samsung, Honor..."
-                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-          <datalist id="listMarca"></datalist>
+      <!-- KPIs Vista 1 -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Equipos a Cargar</p>
+          <p id="v1KpiEquipos" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Unidades totales filtradas</p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">SKU (ej. 2014)</label>
-          <input type="text" id="filtroSKU" list="listSKU" placeholder="Escribe parte del SKU..."
-                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-          <datalist id="listSKU"></datalist>
+        <div class="wom-card p-5 border-t-4 border-[#781C9E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Marcas Activas</p>
+          <p id="v1KpiMarcas" class="text-3xl font-black text-[#781C9E] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Fabricantes en selección</p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Descripción</label>
-          <input type="text" id="filtroDesc" list="listDesc" placeholder="Modelo o color..."
-                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-          <datalist id="listDesc"></datalist>
+        <div class="wom-card p-5 border-t-4 border-[#4B116F]">
+          <p class="text-xs font-bold uppercase text-gray-400">SKUs Únicos</p>
+          <p id="v1KpiSKUs" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Modelos/variantes distintas</p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">ORG</label>
-          <input type="text" id="filtroOrg" list="listOrg" placeholder="Ej: W01, W02..."
-                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-          <datalist id="listOrg"></datalist>
+        <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Organizaciones (ORG)</p>
+          <p id="v1KpiOrgs" class="text-3xl font-black text-[#E6007E] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Centros operativos involucrados</p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
-          <input type="text" id="filtroImei" list="listImei" placeholder="Buscar IMEI..."
-                 class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-          <datalist id="listImei"></datalist>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tarjetas de Indicadores (KPIs) -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="wom-card p-5 border-t-4 border-[#E6007E]">
-        <p class="text-xs font-bold uppercase text-gray-400">Equipos Cargados</p>
-        <p id="kpiTotalEquipos" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
-        <p class="text-xs text-gray-500 mt-1">Unidades totales filtradas</p>
-      </div>
-      <div class="wom-card p-5 border-t-4 border-[#781C9E]">
-        <p class="text-xs font-bold uppercase text-gray-400">Marcas Activas</p>
-        <p id="kpiTotalMarcas" class="text-3xl font-black text-[#781C9E] mt-1">0</p>
-        <p class="text-xs text-gray-500 mt-1">Fabricantes en selección</p>
-      </div>
-      <div class="wom-card p-5 border-t-4 border-[#4B116F]">
-        <p class="text-xs font-bold uppercase text-gray-400">SKUs Únicos</p>
-        <p id="kpiTotalSKUs" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
-        <p class="text-xs text-gray-500 mt-1">Modelos/variantes distintas</p>
-      </div>
-      <div class="wom-card p-5 border-t-4 border-[#E6007E]">
-        <p class="text-xs font-bold uppercase text-gray-400">Organizaciones (ORG)</p>
-        <p id="kpiTotalOrgs" class="text-3xl font-black text-[#E6007E] mt-1">0</p>
-        <p class="text-xs text-gray-500 mt-1">Centros operativos involucrados</p>
-      </div>
-    </section>
-
-    <!-- Sección de Gráficos Dinámicos -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="wom-card p-5 lg:col-span-2">
-        <h3 class="text-sm font-bold text-[#4B116F] mb-3">Cantidad de Equipos Cargados por Marca</h3>
-        <div class="h-64">
-          <canvas id="chartMarcas"></canvas>
+      <!-- Gráficos Vista 1 -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="wom-card p-5 lg:col-span-2">
+          <h3 class="text-sm font-bold text-[#4B116F] mb-3">Cantidad de Equipos por Marca</h3>
+          <div class="h-64"><canvas id="v1ChartMarcas"></canvas></div>
         </div>
-      </div>
-      <div class="wom-card p-5">
-        <h3 class="text-sm font-bold text-[#4B116F] mb-3">Distribución por Organización (ORG)</h3>
-        <div class="h-64">
-          <canvas id="chartOrg"></canvas>
+        <div class="wom-card p-5">
+          <h3 class="text-sm font-bold text-[#4B116F] mb-3">Distribución por Organización (ORG)</h3>
+          <div class="h-64"><canvas id="v1ChartOrg"></canvas></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tabla de Detalle de Equipos -->
-    <section class="wom-card overflow-hidden">
-      <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div>
-          <h3 class="text-sm font-bold text-[#4B116F]">Detalle de Equipos para Carga Globetek</h3>
-          <p id="tablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
+      <!-- Tabla Vista 1 -->
+      <section class="wom-card overflow-hidden">
+        <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-[#4B116F]">Detalle de Equipos Homologados para Carga</h3>
+            <p id="v1TablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
+          </div>
+          <button onclick="exportarCSV('v1')" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
+            ⬇ Descargar vista filtrada (.CSV)
+          </button>
         </div>
-        <button onclick="exportarCSVFiltrado()" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
-          ⬇ Descargar vista filtrada (.CSV)
-        </button>
-      </div>
-
-      <div class="overflow-x-auto max-h-[520px]">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <thead class="bg-[#4B116F] text-white sticky top-0 z-10">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">SKU</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Descripción</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Marca</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">ORG</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Subinventario</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">IMEI</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Carga</th>
-            </tr>
-          </thead>
-          <tbody id="tablaCuerpo" class="bg-white divide-y divide-gray-100">
-            <!-- Filas renderizadas dinámicamente -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Paginación para fluidez con miles de IMEIs -->
-      <div class="p-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
-        <span id="infoPagina">Página 1 de 1</span>
-        <div class="flex gap-2">
-          <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Anterior</button>
-          <button id="btnNext" onclick="cambiarPagina(1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Siguiente</button>
+        <div class="overflow-x-auto max-h-[520px]">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-[#4B116F] text-white sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">SKU</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Descripción</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Marca</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Tipo ORG</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">ORG</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Subinventario</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">IMEI</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Fecha Carga</th>
+              </tr>
+            </thead>
+            <tbody id="v1TablaCuerpo" class="bg-white divide-y divide-gray-100"></tbody>
+          </table>
         </div>
-      </div>
-    </section>
+        <div class="p-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
+          <span id="v1InfoPagina">Página 1 de 1</span>
+          <div class="flex gap-2">
+            <button id="v1BtnPrev" onclick="cambiarPagina('v1', -1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Anterior</button>
+            <button id="v1BtnNext" onclick="cambiarPagina('v1', 1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Siguiente</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 2: 2. EQUIPOS CARGADOS (Histórico consolidado de carpeta)       -->
+    <!-- ===================================================================== -->
+    <div id="vista2" class="space-y-6 hidden">
+      <section class="wom-card p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
+            <span>🔍</span> Filtros Históricos de Equipos Cargados (Búsqueda en Cascada)
+          </h2>
+          <button onclick="limpiarFiltros('v2')" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition">
+            Limpiar todos los filtros
+          </button>
+        </div>
+
+        <!-- Fila 1: Filtros Temporales (Año, Mes, Semana, Fecha de Carga) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Año</label>
+            <select id="v2FiltroAnio" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todos los años</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Mes</label>
+            <select id="v2FiltroMes" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todos los meses</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Semana del Año</label>
+            <select id="v2FiltroSemana" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todas las semanas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Fecha de Carga</label>
+            <select id="v2FiltroFecha" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todas las fechas</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Fila 2: Buscadores Predictivos (Tipo de ORG, ORG, Marca, SKU, Descripción, IMEI) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
+            <input type="text" id="v2FiltroTipoOrg" list="v2ListTipoOrg" placeholder="Tienda, Bodega..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListTipoOrg"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">ORG</label>
+            <input type="text" id="v2FiltroOrg" list="v2ListOrg" placeholder="Ej: W01, W02..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListOrg"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Marca</label>
+            <input type="text" id="v2FiltroMarca" list="v2ListMarca" placeholder="Ej: Samsung, Honor..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListMarca"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">SKU (ej. 2014)</label>
+            <input type="text" id="v2FiltroSKU" list="v2ListSKU" placeholder="Parte del SKU..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListSKU"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Descripción</label>
+            <input type="text" id="v2FiltroDesc" list="v2ListDesc" placeholder="Modelo o color..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListDesc"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
+            <input type="text" id="v2FiltroImei" list="v2ListImei" placeholder="Buscar IMEI..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v2ListImei"></datalist>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPIs Vista 2 -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Total Equipos Cargados</p>
+          <p id="v2KpiEquipos" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Unidades acumuladas filtradas</p>
+        </div>
+        <div class="wom-card p-5 border-t-4 border-[#781C9E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Marcas</p>
+          <p id="v2KpiMarcas" class="text-3xl font-black text-[#781C9E] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Fabricantes cargados</p>
+        </div>
+        <div class="wom-card p-5 border-t-4 border-[#4B116F]">
+          <p class="text-xs font-bold uppercase text-gray-400">SKUs Únicos</p>
+          <p id="v2KpiSKUs" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Modelos distintos cargados</p>
+        </div>
+        <div class="wom-card p-5 border-t-4 border-[#E6007E]">
+          <p class="text-xs font-bold uppercase text-gray-400">Organizaciones (ORG)</p>
+          <p id="v2KpiOrgs" class="text-3xl font-black text-[#E6007E] mt-1">0</p>
+          <p class="text-xs text-gray-500 mt-1">Destinos operativos cargados</p>
+        </div>
+      </section>
+
+      <!-- Gráficos Vista 2 -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="wom-card p-5 lg:col-span-2">
+          <h3 class="text-sm font-bold text-[#4B116F] mb-3">Totales por Marca (Equipos Cargados)</h3>
+          <div class="h-64"><canvas id="v2ChartMarcas"></canvas></div>
+        </div>
+        <div class="wom-card p-5">
+          <h3 class="text-sm font-bold text-[#4B116F] mb-3">Distribución por ORG</h3>
+          <div class="h-64"><canvas id="v2ChartOrg"></canvas></div>
+        </div>
+      </section>
+
+      <!-- Tabla Vista 2 -->
+      <section class="wom-card overflow-hidden">
+        <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-[#4B116F]">Historial Consolidado de Equipos Cargados</h3>
+            <p id="v2TablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
+          </div>
+          <button onclick="exportarCSV('v2')" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
+            ⬇ Descargar vista filtrada (.CSV)
+          </button>
+        </div>
+        <div class="overflow-x-auto max-h-[520px]">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-[#4B116F] text-white sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">SKU</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Descripción</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Marca</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Tipo ORG</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">ORG</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Subinventario</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">IMEI</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Fecha Carga</th>
+              </tr>
+            </thead>
+            <tbody id="v2TablaCuerpo" class="bg-white divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+        <div class="p-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
+          <span id="v2InfoPagina">Página 1 de 1</span>
+          <div class="flex gap-2">
+            <button id="v2BtnPrev" onclick="cambiarPagina('v2', -1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Anterior</button>
+            <button id="v2BtnNext" onclick="cambiarPagina('v2', 1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Siguiente</button>
+          </div>
+        </div>
+      </section>
+    </div>
 
   </main>
 
   <script>
-    // URL de tu Aplicación Web de Google Apps Script
     const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/wom.cl/s/AKfycbwcja0qQAlOQH3Bkk5oiX9lcukPBlwYsWFJBaea6Btnhn0VO4twJA042qrsHhSOR7ABiw/exec';
 
-    let datosOriginales = [];
-    let datosFiltrados = [];
-    let paginaActual = 1;
+    const estadoVistas = {
+      v1: { originales: [], filtrados: [], pagina: 1, chartMarcas: null, chartOrg: null, tieneFiltrosFecha: false },
+      v2: { originales: [], filtrados: [], pagina: 1, chartMarcas: null, chartOrg: null, tieneFiltrosFecha: true }
+    };
     const filasPorPagina = 100;
-    let chartMarcasInstance = null;
-    let chartOrgInstance = null;
 
     const nombresMeses = {
       '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
@@ -254,7 +392,22 @@
       '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
     };
 
-    // Calcular semana ISO a partir de DD-MM-YYYY
+    function cambiarVista(vistaId) {
+      document.getElementById('vista1').classList.toggle('hidden', vistaId !== 'vista1');
+      document.getElementById('vista2').classList.toggle('hidden', vistaId !== 'vista2');
+
+      const btn1 = document.getElementById('tabBtn1');
+      const btn2 = document.getElementById('tabBtn2');
+
+      if (vistaId === 'vista1') {
+        btn1.className = 'px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition';
+        btn2.className = 'px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition';
+      } else {
+        btn2.className = 'px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition';
+        btn1.className = 'px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition';
+      }
+    }
+
     function obtenerInfoFecha(fechaStr) {
       if (!fechaStr) return { anio: '', mes: '', semana: '', fecha: '' };
       const partes = fechaStr.split('-');
@@ -279,93 +432,101 @@
       const spinner = document.getElementById('spinner');
       const statusText = document.getElementById('statusText');
       spinner.style.display = 'block';
-      statusText.textContent = 'Conectando con carpeta de Google Drive y consolidando archivos...';
+      statusText.textContent = 'Conectando con Google Drive y maestro de ORGs...';
 
-      // Eliminar script previo si existía
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
 
-      // Definir función receptora global
-      window.recibirDatosGlobetek = function(json) {
+      window.recibirDatosGlobetek = function(payload) {
         clearTimeout(window.timerCarga);
-        datosOriginales = json.map(row => {
-          const infoFecha = obtenerInfoFecha(row.Fecha_Carga);
-          return { ...row, ...infoFecha };
-        });
+
+        // Cargar Vista 1 (Carga Globetek)
+        const fechaV1 = payload.cargaGlobetek.fechaArchivo || 'Sin fecha';
+        document.getElementById('v1EtiquetaFecha').textContent = fechaV1;
+        estadoVistas.v1.originales = (payload.cargaGlobetek.registros || []).map(r => ({
+          ...r, ...obtenerInfoFecha(r.Fecha_Carga)
+        }));
+
+        // Cargar Vista 2 (Equipos Cargados)
+        estadoVistas.v2.originales = (payload.equiposCargados.registros || []).map(r => ({
+          ...r, ...obtenerInfoFecha(r.Fecha_Carga)
+        }));
 
         spinner.style.display = 'none';
-        if (datosOriginales.length === 0) {
-          statusText.innerHTML = '⚠️ <b>Conectado, pero sin registros:</b> La carpeta de Drive no tiene archivos CSV/Sheets con datos todavía.';
-        } else {
-          statusText.innerHTML = `✅ <b>Conectado:</b> ${datosOriginales.length.toLocaleString('es-CL')} equipos consolidados desde Google Drive.`;
-        }
-        aplicarFiltros();
+        statusText.innerHTML = `✅ <b>Conectado:</b> ${estadoVistas.v1.originales.length.toLocaleString('es-CL')} equipos en <i>Carga Globetek</i> (${fechaV1}) | ${estadoVistas.v2.originales.length.toLocaleString('es-CL')} equipos en <i>Equipos Cargados</i>.`;
+
+        aplicarFiltros('v1');
+        aplicarFiltros('v2');
       };
 
-      // Alerta si tarda más de 15 segundos
       window.timerCarga = setTimeout(() => {
         spinner.style.display = 'none';
         statusText.innerHTML = `⚠️ <b>Tiempo de espera agotado:</b> Verifica tener iniciada tu sesión <b>@wom.cl</b> y revisa el <a href="${APPS_SCRIPT_URL}" target="_blank" class="underline font-bold">enlace de Apps Script</a>.`;
-      }, 15000);
+      }, 18000);
 
-      // Cargar datos vía etiqueta script (evita bloqueo CORS de Google Workspace)
       const script = document.createElement('script');
       script.id = 'jsonpScript';
       script.src = `${APPS_SCRIPT_URL}?callback=recibirDatosGlobetek&t=${Date.now()}`;
       script.onerror = function() {
         clearTimeout(window.timerCarga);
         spinner.style.display = 'none';
-        statusText.innerHTML = `❌ <b>Acceso bloqueado por Google:</b> Abre <a href="${APPS_SCRIPT_URL}" target="_blank" class="underline font-bold">este enlace en otra pestaña</a> para verificar permisos.`;
+        statusText.innerHTML = `❌ <b>Acceso bloqueado por Google:</b> Abre <a href="${APPS_SCRIPT_URL}" target="_blank" class="underline font-bold">este enlace en otra pestaña</a> para autorizar permisos.`;
       };
       document.body.appendChild(script);
     }
 
-    function aplicarFiltros() {
-      const vAnio = document.getElementById('filtroAnio').value;
-      const vMes = document.getElementById('filtroMes').value;
-      const vSemana = document.getElementById('filtroSemana').value;
-      const vFecha = document.getElementById('filtroFecha').value;
+    function aplicarFiltros(v) {
+      const st = estadoVistas[v];
+      const vAnio   = st.tieneFiltrosFecha ? document.getElementById(`${v}FiltroAnio`).value : '';
+      const vMes    = st.tieneFiltrosFecha ? document.getElementById(`${v}FiltroMes`).value : '';
+      const vSemana = st.tieneFiltrosFecha ? document.getElementById(`${v}FiltroSemana`).value : '';
+      const vFecha  = st.tieneFiltrosFecha ? document.getElementById(`${v}FiltroFecha`).value : '';
 
-      const vMarca = document.getElementById('filtroMarca').value.trim().toLowerCase();
-      const vSKU = document.getElementById('filtroSKU').value.trim().toLowerCase();
-      const vDesc = document.getElementById('filtroDesc').value.trim().toLowerCase();
-      const vOrg = document.getElementById('filtroOrg').value.trim().toLowerCase();
-      const vImei = document.getElementById('filtroImei').value.trim().toLowerCase();
+      const vTipoOrg = document.getElementById(`${v}FiltroTipoOrg`).value.trim().toLowerCase();
+      const vOrg     = document.getElementById(`${v}FiltroOrg`).value.trim().toLowerCase();
+      const vMarca   = document.getElementById(`${v}FiltroMarca`).value.trim().toLowerCase();
+      const vSKU     = document.getElementById(`${v}FiltroSKU`).value.trim().toLowerCase();
+      const vDesc    = document.getElementById(`${v}FiltroDesc`).value.trim().toLowerCase();
+      const vImei    = document.getElementById(`${v}FiltroImei`).value.trim().toLowerCase();
 
-      datosFiltrados = datosOriginales.filter(item => {
+      st.filtrados = st.originales.filter(item => {
         if (vAnio && item.anio !== vAnio) return false;
         if (vMes && item.mes !== vMes) return false;
         if (vSemana && item.semana !== vSemana) return false;
         if (vFecha && item.fecha !== vFecha) return false;
 
+        if (vTipoOrg && !String(item.TIPO_ORG).toLowerCase().includes(vTipoOrg)) return false;
+        if (vOrg && !String(item.ORG).toLowerCase().includes(vOrg)) return false;
         if (vMarca && !String(item.MARCA).toLowerCase().includes(vMarca)) return false;
         if (vSKU && !String(item.SKU).toLowerCase().includes(vSKU)) return false;
         if (vDesc && !String(item.DESCRIPCION).toLowerCase().includes(vDesc)) return false;
-        if (vOrg && !String(item.ORG).toLowerCase().includes(vOrg)) return false;
         if (vImei && !String(item.IMEI).toLowerCase().includes(vImei)) return false;
 
         return true;
       });
 
-      actualizarOpcionesDinamicas();
-      actualizarKPIs();
-      actualizarGraficos();
-      paginaActual = 1;
-      renderizarTabla();
+      actualizarOpcionesDinamicas(v);
+      actualizarKPIs(v);
+      actualizarGraficos(v);
+      st.pagina = 1;
+      renderizarTabla(v);
     }
 
-    // Actualiza en cascada las opciones disponibles en cada filtro según lo ya filtrado
-    function actualizarOpcionesDinamicas() {
-      poblarSelect('filtroAnio', [...new Set(datosFiltrados.map(d => d.anio).filter(Boolean))].sort());
-      poblarSelect('filtroMes', [...new Set(datosFiltrados.map(d => d.mes).filter(Boolean))].sort());
-      poblarSelect('filtroSemana', [...new Set(datosFiltrados.map(d => d.semana).filter(Boolean))].sort());
-      poblarSelect('filtroFecha', [...new Set(datosFiltrados.map(d => d.fecha).filter(Boolean))]);
+    function actualizarOpcionesDinamicas(v) {
+      const filtrados = estadoVistas[v].filtrados;
+      if (estadoVistas[v].tieneFiltrosFecha) {
+        poblarSelect(`${v}FiltroAnio`, [...new Set(filtrados.map(d => d.anio).filter(Boolean))].sort());
+        poblarSelect(`${v}FiltroMes`, [...new Set(filtrados.map(d => d.mes).filter(Boolean))].sort());
+        poblarSelect(`${v}FiltroSemana`, [...new Set(filtrados.map(d => d.semana).filter(Boolean))].sort());
+        poblarSelect(`${v}FiltroFecha`, [...new Set(filtrados.map(d => d.fecha).filter(Boolean))]);
+      }
 
-      poblarDatalist('listMarca', [...new Set(datosFiltrados.map(d => d.MARCA).filter(Boolean))].sort());
-      poblarDatalist('listSKU', [...new Set(datosFiltrados.map(d => d.SKU).filter(Boolean))].sort().slice(0, 300));
-      poblarDatalist('listDesc', [...new Set(datosFiltrados.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
-      poblarDatalist('listOrg', [...new Set(datosFiltrados.map(d => d.ORG).filter(Boolean))].sort());
-      poblarDatalist('listImei', [...new Set(datosFiltrados.map(d => d.IMEI).filter(Boolean))].slice(0, 150));
+      poblarDatalist(`${v}ListTipoOrg`, [...new Set(filtrados.map(d => d.TIPO_ORG).filter(Boolean))].sort());
+      poblarDatalist(`${v}ListOrg`, [...new Set(filtrados.map(d => d.ORG).filter(Boolean))].sort());
+      poblarDatalist(`${v}ListMarca`, [...new Set(filtrados.map(d => d.MARCA).filter(Boolean))].sort());
+      poblarDatalist(`${v}ListSKU`, [...new Set(filtrados.map(d => d.SKU).filter(Boolean))].sort().slice(0, 300));
+      poblarDatalist(`${v}ListDesc`, [...new Set(filtrados.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
+      poblarDatalist(`${v}ListImei`, [...new Set(filtrados.map(d => d.IMEI).filter(Boolean))].slice(0, 150));
     }
 
     function poblarSelect(id, opciones) {
@@ -392,17 +553,20 @@
       });
     }
 
-    function actualizarKPIs() {
-      document.getElementById('kpiTotalEquipos').textContent = datosFiltrados.length.toLocaleString('es-CL');
-      document.getElementById('kpiTotalMarcas').textContent = new Set(datosFiltrados.map(d => d.MARCA).filter(Boolean)).size;
-      document.getElementById('kpiTotalSKUs').textContent = new Set(datosFiltrados.map(d => d.SKU).filter(Boolean)).size;
-      document.getElementById('kpiTotalOrgs').textContent = new Set(datosFiltrados.map(d => d.ORG).filter(Boolean)).size;
+    function actualizarKPIs(v) {
+      const filtrados = estadoVistas[v].filtrados;
+      document.getElementById(`${v}KpiEquipos`).textContent = filtrados.length.toLocaleString('es-CL');
+      document.getElementById(`${v}KpiMarcas`).textContent = new Set(filtrados.map(d => d.MARCA).filter(Boolean)).size;
+      document.getElementById(`${v}KpiSKUs`).textContent = new Set(filtrados.map(d => d.SKU).filter(Boolean)).size;
+      document.getElementById(`${v}KpiOrgs`).textContent = new Set(filtrados.map(d => d.ORG).filter(Boolean)).size;
     }
 
-    function actualizarGraficos() {
+    function actualizarGraficos(v) {
+      const st = estadoVistas[v];
       const conteoMarca = {};
       const conteoOrg = {};
-      datosFiltrados.forEach(d => {
+
+      st.filtrados.forEach(d => {
         const m = d.MARCA || 'Sin marca';
         const o = d.ORG || 'Sin ORG';
         conteoMarca[m] = (conteoMarca[m] || 0) + 1;
@@ -410,17 +574,14 @@
       });
 
       const marcasOrdenadas = Object.entries(conteoMarca).sort((a, b) => b[1] - a[1]);
-      const labelsMarca = marcasOrdenadas.map(x => x[0]);
-      const valuesMarca = marcasOrdenadas.map(x => x[1]);
-
-      if (chartMarcasInstance) chartMarcasInstance.destroy();
-      chartMarcasInstance = new Chart(document.getElementById('chartMarcas'), {
+      if (st.chartMarcas) st.chartMarcas.destroy();
+      st.chartMarcas = new Chart(document.getElementById(`${v}ChartMarcas`), {
         type: 'bar',
         data: {
-          labels: labelsMarca,
+          labels: marcasOrdenadas.map(x => x[0]),
           datasets: [{
-            label: 'Equipos Cargados',
-            data: valuesMarca,
+            label: 'Equipos',
+            data: marcasOrdenadas.map(x => x[1]),
             backgroundColor: '#781C9E',
             hoverBackgroundColor: '#E6007E',
             borderRadius: 6
@@ -435,14 +596,14 @@
       });
 
       const orgsOrdenadas = Object.entries(conteoOrg).sort((a, b) => b[1] - a[1]);
-      if (chartOrgInstance) chartOrgInstance.destroy();
-      chartOrgInstance = new Chart(document.getElementById('chartOrg'), {
+      if (st.chartOrg) st.chartOrg.destroy();
+      st.chartOrg = new Chart(document.getElementById(`${v}ChartOrg`), {
         type: 'doughnut',
         data: {
           labels: orgsOrdenadas.map(x => x[0]),
           datasets: [{
             data: orgsOrdenadas.map(x => x[1]),
-            backgroundColor: ['#4B116F', '#E6007E', '#781C9E', '#A855F7', '#F472B6', '#C084FC']
+            backgroundColor: ['#4B116F', '#E6007E', '#781C9E', '#A855F7', '#F472B6', '#C084FC', '#6D28D9', '#DB2777']
           }]
         },
         options: {
@@ -453,14 +614,14 @@
       });
     }
 
-    function renderizarTabla() {
-      const tbody = document.getElementById('tablaCuerpo');
+    function renderizarTabla(v) {
+      const st = estadoVistas[v];
+      const tbody = document.getElementById(`${v}TablaCuerpo`);
       tbody.innerHTML = '';
 
-      const totalPaginas = Math.max(1, Math.ceil(datosFiltrados.length / filasPorPagina));
-      const inicio = (paginaActual - 1) * filasPorPagina;
-      const fin = inicio + filasPorPagina;
-      const slice = datosFiltrados.slice(inicio, fin);
+      const totalPaginas = Math.max(1, Math.ceil(st.filtrados.length / filasPorPagina));
+      const inicio = (st.pagina - 1) * filasPorPagina;
+      const slice = st.filtrados.slice(inicio, inicio + filasPorPagina);
 
       slice.forEach(row => {
         const tr = document.createElement('tr');
@@ -469,6 +630,7 @@
           <td class="px-4 py-2.5 font-mono text-xs font-semibold text-[#4B116F] whitespace-nowrap">${row.SKU}</td>
           <td class="px-4 py-2.5 text-xs text-gray-800">${row.DESCRIPCION}</td>
           <td class="px-4 py-2.5 text-xs font-bold text-[#781C9E] whitespace-nowrap">${row.MARCA}</td>
+          <td class="px-4 py-2.5 text-xs font-medium text-[#E6007E] whitespace-nowrap">${row.TIPO_ORG}</td>
           <td class="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">${row.ORG}</td>
           <td class="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">${row.SUBINVENTARIO}</td>
           <td class="px-4 py-2.5 font-mono text-xs text-gray-700 whitespace-nowrap">${row.IMEI}</td>
@@ -477,49 +639,56 @@
         tbody.appendChild(tr);
       });
 
-      document.getElementById('tablaContador').textContent =
-        `Mostrando ${slice.length} de ${datosFiltrados.length.toLocaleString('es-CL')} registros filtrados`;
-      document.getElementById('infoPagina').textContent = `Página ${paginaActual} de ${totalPaginas}`;
-      document.getElementById('btnPrev').disabled = paginaActual <= 1;
-      document.getElementById('btnNext').disabled = paginaActual >= totalPaginas;
+      document.getElementById(`${v}TablaContador`).textContent =
+        `Mostrando ${slice.length} de ${st.filtrados.length.toLocaleString('es-CL')} registros filtrados`;
+      document.getElementById(`${v}InfoPagina`).textContent = `Página ${st.pagina} de ${totalPaginas}`;
+      document.getElementById(`${v}BtnPrev`).disabled = st.pagina <= 1;
+      document.getElementById(`${v}BtnNext`).disabled = st.pagina >= totalPaginas;
     }
 
-    function cambiarPagina(delta) {
-      paginaActual += delta;
-      renderizarTabla();
+    function cambiarPagina(v, delta) {
+      estadoVistas[v].pagina += delta;
+      renderizarTabla(v);
     }
 
-    function limpiarFiltros() {
-      ['filtroAnio', 'filtroMes', 'filtroSemana', 'filtroFecha',
-       'filtroMarca', 'filtroSKU', 'filtroDesc', 'filtroOrg', 'filtroImei'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      aplicarFiltros();
+    function limpiarFiltros(v) {
+      const camposTexto = ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'];
+      camposTexto.forEach(c => document.getElementById(`${v}${c}`).value = '');
+
+      if (estadoVistas[v].tieneFiltrosFecha) {
+        ['FiltroAnio', 'FiltroMes', 'FiltroSemana', 'FiltroFecha'].forEach(c => {
+          document.getElementById(`${v}${c}`).value = '';
+        });
+      }
+      aplicarFiltros(v);
     }
 
-    function exportarCSVFiltrado() {
-      const headers = ['SKU', 'DESCRIPCION', 'MARCA', 'ORG', 'SUBINVENTARIO', 'IMEI', 'Fecha_Carga'];
+    function exportarCSV(v) {
+      const headers = ['SKU', 'DESCRIPCION', 'MARCA', 'TIPO_ORG', 'ORG', 'SUBINVENTARIO', 'IMEI', 'Fecha_Carga'];
       const filas = [headers.join(',')];
-      datosFiltrados.forEach(r => {
+      estadoVistas[v].filtrados.forEach(r => {
         filas.push(headers.map(h => `"${String(r[h] || '').replace(/"/g, '""')}"`).join(','));
       });
       const blob = new Blob(["\uFEFF" + filas.join('\n')], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
+      const prefijo = v === 'v1' ? 'Carga_Globetek' : 'Equipos_Cargados';
       a.href = url;
-      a.download = `Globetek_Filtrado_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `${prefijo}_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
 
-    // Escuchar eventos en tiempo real en todos los filtros
-    ['filtroAnio', 'filtroMes', 'filtroSemana', 'filtroFecha'].forEach(id => {
-      document.getElementById(id).addEventListener('change', aplicarFiltros);
-    });
-    ['filtroMarca', 'filtroSKU', 'filtroDesc', 'filtroOrg', 'filtroImei'].forEach(id => {
-      document.getElementById(id).addEventListener('input', aplicarFiltros);
+    // Registrar eventos para Vista 1 y Vista 2
+    ['v1', 'v2'].forEach(v => {
+      ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'].forEach(c => {
+        document.getElementById(`${v}${c}`).addEventListener('input', () => aplicarFiltros(v));
+      });
     });
 
-    // Iniciar carga al abrir la página
+    ['FiltroAnio', 'FiltroMes', 'FiltroSemana', 'FiltroFecha'].forEach(c => {
+      document.getElementById(`v2${c}`).addEventListener('change', () => aplicarFiltros('v2'));
+    });
+
     window.addEventListener('DOMContentLoaded', cargarDatos);
   </script>
 </body>
