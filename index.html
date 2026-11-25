@@ -383,7 +383,6 @@
             <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
               <span>🔍</span> Filtros de Estado y Enrolamiento (Búsqueda en Cascada)
             </h2>
-            <!-- Etiqueta superior con Fecha de Actualización del archivo -->
             <span class="inline-flex items-center gap-1.5 bg-[#4B116F] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
               <span>🕒 Fecha de Actualización del Archivo:</span>
               <span id="v3EtiquetaFechaArchivo" class="text-[#FF85C8]">--/--/----</span>
@@ -394,7 +393,7 @@
           </button>
         </div>
 
-        <!-- Fila 1: Filtros de Enrolamiento (Mes, Semana, Fecha de enrolamiento) + Estado -->
+        <!-- Fila 1: Filtros de Enrolamiento + Estado -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
           <div>
             <label class="block text-xs font-bold text-[#4B116F] mb-1">Mes de Enrolamiento</label>
@@ -444,9 +443,8 @@
         </div>
       </section>
 
-      <!-- Tarjetas de Indicadores Dinámicos (Total + Estados con % debajo) -->
+      <!-- Tarjetas de Indicadores Dinámicos (Solo Total + Estados reales presentes en los datos) -->
       <section id="v3ContenedorKPIs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Se generan dinámicamente: Total Equipos + Activo + Pendiente por activacion + otros estados -->
       </section>
 
       <!-- Tabla Descargable de Estado de Equipos -->
@@ -523,7 +521,6 @@
       document.getElementById('tabBtn3').className = vistaId === 'vista3' ? activos : inactivos;
     }
 
-    // Parseador flexible para DD-MM-YYYY o YYYY-MM-DD (con o sin hora)
     function obtenerInfoFechaFlexible(fechaStr) {
       if (!fechaStr) return { anio: '', mes: '', semana: '', fecha: '' };
       const soloFecha = String(fechaStr).trim().split(/\s+/)[0];
@@ -532,12 +529,10 @@
 
       let dia, mes, anio;
       if (partes[0].length === 4) {
-        // YYYY-MM-DD
         anio = partes[0];
         mes = partes[1].padStart(2, '0');
         dia = parseInt(partes[2], 10);
       } else {
-        // DD-MM-YYYY
         dia = parseInt(partes[0], 10);
         mes = partes[1].padStart(2, '0');
         anio = partes[2];
@@ -834,46 +829,19 @@
       poblarDatalist('v3ListDesc', [...new Set(flt.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
     }
 
+    // Genera KPIs dinámicos únicamente para los estados que existen en los datos filtrados
     function actualizarKPIsV3() {
       const contenedor = document.getElementById('v3ContenedorKPIs');
       const total = estadoV3.filtrados.length;
 
-      // Contar equipos por cada estado
       const conteoEstados = {};
       estadoV3.filtrados.forEach(item => {
-        const est = item.Estado || 'Sin Estado';
+        const est = (item.Estado || 'Sin Estado').trim();
         conteoEstados[est] = (conteoEstados[est] || 0) + 1;
       });
 
-      // Asegurar que "Activo" y "Pendiente por activacion" siempre se muestren primero, seguidos por cualquier otro estado
-      const estadosBase = ['Activo', 'Pendiente por activacion'];
-      const mapaNormalizado = {};
-      Object.keys(conteoEstados).forEach(k => {
-        mapaNormalizado[k.toLowerCase()] = { nombreReal: k, cantidad: conteoEstados[k] };
-      });
-
-      const listaTarjetas = [];
-      const yaAgregados = new Set();
-
-      estadosBase.forEach(base => {
-        const encontrado = mapaNormalizado[base.toLowerCase()];
-        if (encontrado) {
-          listaTarjetas.push(encontrado);
-          yaAgregados.add(encontrado.nombreReal.toLowerCase());
-        } else {
-          listaTarjetas.push({ nombreReal: base, cantidad: 0 });
-          yaAgregados.add(base.toLowerCase());
-        }
-      });
-
-      // Agregar cualquier estado adicional que aparezca en los datos
-      Object.entries(conteoEstados)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([est, cant]) => {
-          if (!yaAgregados.has(est.toLowerCase())) {
-            listaTarjetas.push({ nombreReal: est, cantidad: cant });
-          }
-        });
+      // Ordenar estados reales presentes de mayor a menor cantidad
+      const estadosPresentes = Object.entries(conteoEstados).sort((a, b) => b[1] - a[1]);
 
       // Tarjeta 1: Total Equipos
       let html = `
@@ -884,15 +852,15 @@
         </div>
       `;
 
-      // Tarjetas por cada estado con porcentaje pequeño abajo
+      // Tarjeta por cada estado real encontrado en los datos
       const coloresBorde = ['#E6007E', '#781C9E', '#9333EA', '#DB2777', '#6D28D9'];
-      listaTarjetas.forEach((item, idx) => {
-        const pct = total > 0 ? ((item.cantidad / total) * 100).toFixed(1).replace('.', ',') : '0,0';
+      estadosPresentes.forEach(([estado, cantidad], idx) => {
+        const pct = total > 0 ? ((cantidad / total) * 100).toFixed(1).replace('.', ',') : '0,0';
         const color = coloresBorde[idx % coloresBorde.length];
         html += `
           <div class="wom-card p-5 border-t-4" style="border-top-color: ${color}">
-            <p class="text-xs font-bold uppercase text-gray-400 truncate" title="${item.nombreReal}">${item.nombreReal}</p>
-            <p class="text-3xl font-black text-gray-800 mt-1">${item.cantidad.toLocaleString('es-CL')}</p>
+            <p class="text-xs font-bold uppercase text-gray-400 truncate" title="${estado}">${estado}</p>
+            <p class="text-3xl font-black text-gray-800 mt-1">${cantidad.toLocaleString('es-CL')}</p>
             <p class="text-[11px] font-bold text-[#E6007E] mt-1">${pct}% del total</p>
           </div>
         `;
@@ -910,8 +878,8 @@
       const slice = estadoV3.filtrados.slice(inicio, inicio + filasPorPagina);
 
       slice.forEach(row => {
-        const esActivo = row.Estado.toLowerCase() === 'activo';
-        const badgeClass = esActivo
+        const esActivado = row.Estado.toLowerCase().includes('activado');
+        const badgeClass = esActivado
           ? 'bg-emerald-100 text-emerald-800'
           : 'bg-amber-100 text-amber-800';
 
