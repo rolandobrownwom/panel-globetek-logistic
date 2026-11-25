@@ -56,7 +56,7 @@
       <nav class="flex flex-wrap items-center gap-2 bg-black/25 p-1.5 rounded-xl">
         <button id="tabBtn1" onclick="cambiarVista('vista1')"
                 class="px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition">
-          1. Carga Globetek
+          1. Stock ORACLE Homologado
         </button>
         <button id="tabBtn2" onclick="cambiarVista('vista2')"
                 class="px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition">
@@ -75,7 +75,7 @@
     <div id="statusBanner" class="wom-card p-4 flex items-center justify-between border-l-4 border-[#E6007E]">
       <div class="flex items-center gap-3">
         <div id="spinner" class="animate-spin rounded-full h-5 w-5 border-2 border-[#E6007E] border-t-transparent"></div>
-        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con Google Drive y maestro de ORGs...</span>
+        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con Google Drive, maestro de ORGs y lista de Aprobados...</span>
       </div>
       <button onclick="cargarDatos()" class="text-xs font-semibold text-[#E6007E] hover:underline shrink-0 ml-4">
         ↻ Actualizar datos
@@ -83,7 +83,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- VISTA 1: 1. CARGA GLOBETEK (Último archivo + Etiqueta de fecha)        -->
+    <!-- VISTA 1: 1. STOCK ORACLE HOMOLOGADO                                   -->
     <!-- ===================================================================== -->
     <div id="vista1" class="space-y-6">
       <section class="wom-card p-5 space-y-4">
@@ -92,10 +92,12 @@
             <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
               <span>🔍</span> Filtros Dinámicos (Búsqueda en Cascada)
             </h2>
-            <!-- Etiqueta mostrando la fecha del archivo escogido -->
             <span class="inline-flex items-center gap-1.5 bg-[#4B116F] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
               <span>📅 Fecha Archivo Seleccionado:</span>
               <span id="v1EtiquetaFecha" class="text-[#FF85C8]">--/--/----</span>
+            </span>
+            <span class="inline-flex items-center gap-1 bg-purple-100 text-[#4B116F] text-xs font-semibold px-2.5 py-1 rounded-full">
+              ✓ Filtrado automático con Aprobados
             </span>
           </div>
           <button onclick="limpiarFiltros('v1')" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition self-start sm:self-auto">
@@ -103,7 +105,7 @@
           </button>
         </div>
 
-        <!-- Buscadores Predictivos Vista 1 (incluye Tipo de ORG) -->
+        <!-- Buscadores Predictivos Vista 1 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
@@ -147,7 +149,7 @@
       <!-- KPIs Vista 1 -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="wom-card p-5 border-t-4 border-[#E6007E]">
-          <p class="text-xs font-bold uppercase text-gray-400">Equipos a Cargar</p>
+          <p class="text-xs font-bold uppercase text-gray-400">Stock Homologado</p>
           <p id="v1KpiEquipos" class="text-3xl font-black text-[#4B116F] mt-1">0</p>
           <p class="text-xs text-gray-500 mt-1">Unidades totales filtradas</p>
         </div>
@@ -184,7 +186,7 @@
       <section class="wom-card overflow-hidden">
         <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 class="text-sm font-bold text-[#4B116F]">Detalle de Equipos Homologados para Carga</h3>
+            <h3 class="text-sm font-bold text-[#4B116F]">Detalle Stock ORACLE Homologado</h3>
             <p id="v1TablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
           </div>
           <button onclick="exportarCSV('v1')" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
@@ -232,7 +234,7 @@
           </button>
         </div>
 
-        <!-- Fila 1: Filtros Temporales (Año, Mes, Semana, Fecha de Carga) -->
+        <!-- Fila 1: Filtros Temporales -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
           <div>
             <label class="block text-xs font-bold text-[#4B116F] mb-1">Año</label>
@@ -260,7 +262,7 @@
           </div>
         </div>
 
-        <!-- Fila 2: Buscadores Predictivos (Tipo de ORG, ORG, Marca, SKU, Descripción, IMEI) -->
+        <!-- Fila 2: Buscadores Predictivos -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
@@ -432,7 +434,7 @@
       const spinner = document.getElementById('spinner');
       const statusText = document.getElementById('statusText');
       spinner.style.display = 'block';
-      statusText.textContent = 'Conectando con Google Drive y maestro de ORGs...';
+      statusText.textContent = 'Conectando con Google Drive, maestro de ORGs y lista de Aprobados...';
 
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
@@ -440,7 +442,7 @@
       window.recibirDatosGlobetek = function(payload) {
         clearTimeout(window.timerCarga);
 
-        // Cargar Vista 1 (Carga Globetek)
+        // Cargar Vista 1 (Stock ORACLE Homologado)
         const fechaV1 = payload.cargaGlobetek.fechaArchivo || 'Sin fecha';
         document.getElementById('v1EtiquetaFecha').textContent = fechaV1;
         estadoVistas.v1.originales = (payload.cargaGlobetek.registros || []).map(r => ({
@@ -453,7 +455,7 @@
         }));
 
         spinner.style.display = 'none';
-        statusText.innerHTML = `✅ <b>Conectado:</b> ${estadoVistas.v1.originales.length.toLocaleString('es-CL')} equipos en <i>Carga Globetek</i> (${fechaV1}) | ${estadoVistas.v2.originales.length.toLocaleString('es-CL')} equipos en <i>Equipos Cargados</i>.`;
+        statusText.innerHTML = `✅ <b>Conectado:</b> ${estadoVistas.v1.originales.length.toLocaleString('es-CL')} equipos homologados en <i>Stock ORACLE Homologado</i> (${fechaV1}) | ${estadoVistas.v2.originales.length.toLocaleString('es-CL')} equipos en <i>Equipos Cargados</i>.`;
 
         aplicarFiltros('v1');
         aplicarFiltros('v2');
@@ -462,7 +464,7 @@
       window.timerCarga = setTimeout(() => {
         spinner.style.display = 'none';
         statusText.innerHTML = `⚠️ <b>Tiempo de espera agotado:</b> Verifica tener iniciada tu sesión <b>@wom.cl</b> y revisa el <a href="${APPS_SCRIPT_URL}" target="_blank" class="underline font-bold">enlace de Apps Script</a>.`;
-      }, 18000);
+      }, 20000);
 
       const script = document.createElement('script');
       script.id = 'jsonpScript';
@@ -672,7 +674,7 @@
       const blob = new Blob(["\uFEFF" + filas.join('\n')], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const prefijo = v === 'v1' ? 'Carga_Globetek' : 'Equipos_Cargados';
+      const prefijo = v === 'v1' ? 'Stock_ORACLE_Homologado' : 'Equipos_Cargados';
       a.href = url;
       a.download = `${prefijo}_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
