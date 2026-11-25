@@ -41,18 +41,18 @@
 
   <!-- Barra Superior Corporativa WOM -->
   <header class="wom-header text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <div class="bg-white text-[#4B116F] font-black text-2xl px-3 py-1 rounded-lg tracking-tighter shadow">
           WOM
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight">Portal Operaciones Globetek</h1>
-          <p class="text-xs text-purple-200">Gestión de Homologación y Cargas en Plataforma</p>
+          <p class="text-xs text-purple-200">Gestión de Homologación, Cargas y Estado de Dispositivos</p>
         </div>
       </div>
 
-      <!-- Navegación entre Vistas -->
+      <!-- Navegación entre las 3 Vistas -->
       <nav class="flex flex-wrap items-center gap-2 bg-black/25 p-1.5 rounded-xl">
         <button id="tabBtn1" onclick="cambiarVista('vista1')"
                 class="px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition">
@@ -62,8 +62,9 @@
                 class="px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition">
           2. Equipos Cargados
         </button>
-        <button disabled class="px-4 py-1.5 rounded-lg text-purple-200/50 text-sm font-medium cursor-not-allowed">
-          3. Stock Histórico (Pronto)
+        <button id="tabBtn3" onclick="cambiarVista('vista3')"
+                class="px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition">
+          3. Estado de Equipos Cargados
         </button>
       </nav>
     </div>
@@ -75,7 +76,7 @@
     <div id="statusBanner" class="wom-card p-4 flex items-center justify-between border-l-4 border-[#E6007E]">
       <div class="flex items-center gap-3">
         <div id="spinner" class="animate-spin rounded-full h-5 w-5 border-2 border-[#E6007E] border-t-transparent"></div>
-        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con Google Drive, maestro de ORGs y lista de Aprobados...</span>
+        <span id="statusText" class="text-sm font-medium text-[#4B116F]">Conectando con Google Drive, maestro de ORGs, Aprobados y Estados...</span>
       </div>
       <button onclick="cargarDatos()" class="text-xs font-semibold text-[#E6007E] hover:underline shrink-0 ml-4">
         ↻ Actualizar datos
@@ -105,7 +106,6 @@
           </button>
         </div>
 
-        <!-- Buscadores Predictivos Vista 1 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
@@ -139,9 +139,8 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
-            <input type="text" id="v1FiltroImei" list="v1ListImei" placeholder="Buscar IMEI..."
+            <input type="text" id="v1FiltroImei" placeholder="Escribir IMEI..."
                    class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-            <datalist id="v1ListImei"></datalist>
           </div>
         </div>
       </section>
@@ -221,7 +220,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- VISTA 2: 2. EQUIPOS CARGADOS (Histórico consolidado de carpeta)       -->
+    <!-- VISTA 2: 2. EQUIPOS CARGADOS                                          -->
     <!-- ===================================================================== -->
     <div id="vista2" class="space-y-6 hidden">
       <section class="wom-card p-5 space-y-4">
@@ -234,7 +233,6 @@
           </button>
         </div>
 
-        <!-- Fila 1: Filtros Temporales -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
           <div>
             <label class="block text-xs font-bold text-[#4B116F] mb-1">Año</label>
@@ -262,7 +260,6 @@
           </div>
         </div>
 
-        <!-- Fila 2: Buscadores Predictivos -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de ORG</label>
@@ -296,9 +293,8 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">IMEI</label>
-            <input type="text" id="v2FiltroImei" list="v2ListImei" placeholder="Buscar IMEI..."
+            <input type="text" id="v2FiltroImei" placeholder="Escribir IMEI..."
                    class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-            <datalist id="v2ListImei"></datalist>
           </div>
         </div>
       </section>
@@ -377,6 +373,119 @@
       </section>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- VISTA 3: 3. ESTADO DE EQUIPOS CARGADOS (devices-status más reciente)  -->
+    <!-- ===================================================================== -->
+    <div id="vista3" class="space-y-6 hidden">
+      <section class="wom-card p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+          <div class="flex flex-wrap items-center gap-3">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-[#4B116F] flex items-center gap-2">
+              <span>🔍</span> Filtros de Estado y Enrolamiento (Búsqueda en Cascada)
+            </h2>
+            <!-- Etiqueta superior con Fecha de Actualización del archivo -->
+            <span class="inline-flex items-center gap-1.5 bg-[#4B116F] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+              <span>🕒 Fecha de Actualización del Archivo:</span>
+              <span id="v3EtiquetaFechaArchivo" class="text-[#FF85C8]">--/--/----</span>
+            </span>
+          </div>
+          <button onclick="limpiarFiltrosV3()" class="text-xs bg-purple-100 hover:bg-[#E6007E] hover:text-white text-[#4B116F] font-semibold px-3 py-1.5 rounded-lg transition self-start sm:self-auto">
+            Limpiar todos los filtros
+          </button>
+        </div>
+
+        <!-- Fila 1: Filtros de Enrolamiento (Mes, Semana, Fecha de enrolamiento) + Estado -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-purple-50/60 p-3 rounded-xl border border-purple-100">
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Mes de Enrolamiento</label>
+            <select id="v3FiltroMesEnrol" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todos los meses</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Semana de Enrolamiento</label>
+            <select id="v3FiltroSemanaEnrol" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todas las semanas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Fecha de Enrolamiento</label>
+            <select id="v3FiltroFechaEnrol" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todas las fechas</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4B116F] mb-1">Estado</label>
+            <select id="v3FiltroEstado" class="wom-input w-full bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
+              <option value="">Todos los estados</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Fila 2: Buscadores Predictivos (SKU, DESCRIPCION) + Búsqueda Directa de IMEI -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">SKU (ej. 2014)</label>
+            <input type="text" id="v3FiltroSKU" list="v3ListSKU" placeholder="Escribir o elegir SKU..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v3ListSKU"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Descripción</label>
+            <input type="text" id="v3FiltroDesc" list="v3ListDesc" placeholder="Modelo o color..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+            <datalist id="v3ListDesc"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">IMEI (Búsqueda directa)</label>
+            <input type="text" id="v3FiltroImei" placeholder="Escribe o pega el IMEI..."
+                   class="wom-input w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-mono" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Tarjetas de Indicadores Dinámicos (Total + Estados con % debajo) -->
+      <section id="v3ContenedorKPIs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Se generan dinámicamente: Total Equipos + Activo + Pendiente por activacion + otros estados -->
+      </section>
+
+      <!-- Tabla Descargable de Estado de Equipos -->
+      <section class="wom-card overflow-hidden">
+        <div class="p-4 bg-white border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-[#4B116F]">Detalle de Estado de Equipos Cargados</h3>
+            <p id="v3TablaContador" class="text-xs text-gray-500">Mostrando 0 registros</p>
+          </div>
+          <button onclick="exportarCSVV3()" class="bg-[#4B116F] hover:bg-[#781C9E] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
+            ⬇ Descargar vista filtrada (.CSV)
+          </button>
+        </div>
+        <div class="overflow-x-auto max-h-[540px]">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-[#4B116F] text-white sticky top-0 z-10">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">IMEI</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">SKU</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Descripción</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Actualizado por</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Fecha de Actualización</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Fecha de Enrolamiento</th>
+                <th class="px-4 py-3 text-left text-xs font-bold uppercase">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="v3TablaCuerpo" class="bg-white divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+        <div class="p-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
+          <span id="v3InfoPagina">Página 1 de 1</span>
+          <div class="flex gap-2">
+            <button id="v3BtnPrev" onclick="cambiarPaginaV3(-1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Anterior</button>
+            <button id="v3BtnNext" onclick="cambiarPaginaV3(1)" class="px-3 py-1 bg-white border rounded hover:bg-purple-50 disabled:opacity-40">Siguiente</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
   </main>
 
   <script>
@@ -386,6 +495,13 @@
       v1: { originales: [], filtrados: [], pagina: 1, chartMarcas: null, chartOrg: null, tieneFiltrosFecha: false },
       v2: { originales: [], filtrados: [], pagina: 1, chartMarcas: null, chartOrg: null, tieneFiltrosFecha: true }
     };
+
+    const estadoV3 = {
+      originales: [],
+      filtrados: [],
+      pagina: 1
+    };
+
     const filasPorPagina = 100;
 
     const nombresMeses = {
@@ -395,38 +511,52 @@
     };
 
     function cambiarVista(vistaId) {
-      document.getElementById('vista1').classList.toggle('hidden', vistaId !== 'vista1');
-      document.getElementById('vista2').classList.toggle('hidden', vistaId !== 'vista2');
+      ['vista1', 'vista2', 'vista3'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', id !== vistaId);
+      });
 
-      const btn1 = document.getElementById('tabBtn1');
-      const btn2 = document.getElementById('tabBtn2');
+      const activos = 'px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition';
+      const inactivos = 'px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition';
 
-      if (vistaId === 'vista1') {
-        btn1.className = 'px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition';
-        btn2.className = 'px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition';
-      } else {
-        btn2.className = 'px-4 py-1.5 rounded-lg bg-[#E6007E] text-white text-sm font-semibold shadow transition';
-        btn1.className = 'px-4 py-1.5 rounded-lg text-purple-100 hover:bg-white/10 text-sm font-semibold transition';
-      }
+      document.getElementById('tabBtn1').className = vistaId === 'vista1' ? activos : inactivos;
+      document.getElementById('tabBtn2').className = vistaId === 'vista2' ? activos : inactivos;
+      document.getElementById('tabBtn3').className = vistaId === 'vista3' ? activos : inactivos;
     }
 
-    function obtenerInfoFecha(fechaStr) {
+    // Parseador flexible para DD-MM-YYYY o YYYY-MM-DD (con o sin hora)
+    function obtenerInfoFechaFlexible(fechaStr) {
       if (!fechaStr) return { anio: '', mes: '', semana: '', fecha: '' };
-      const partes = fechaStr.split('-');
-      if (partes.length !== 3) return { anio: '', mes: '', semana: '', fecha: fechaStr };
-      const dia = parseInt(partes[0], 10);
-      const mes = partes[1];
-      const anio = partes[2];
+      const soloFecha = String(fechaStr).trim().split(/\s+/)[0];
+      const partes = soloFecha.split(/[-\/]/);
+      if (partes.length !== 3) return { anio: '', mes: '', semana: '', fecha: soloFecha };
+
+      let dia, mes, anio;
+      if (partes[0].length === 4) {
+        // YYYY-MM-DD
+        anio = partes[0];
+        mes = partes[1].padStart(2, '0');
+        dia = parseInt(partes[2], 10);
+      } else {
+        // DD-MM-YYYY
+        dia = parseInt(partes[0], 10);
+        mes = partes[1].padStart(2, '0');
+        anio = partes[2];
+      }
+
       const dateObj = new Date(Date.UTC(parseInt(anio, 10), parseInt(mes, 10) - 1, dia));
+      if (isNaN(dateObj.getTime())) return { anio: '', mes: '', semana: '', fecha: soloFecha };
+
       const dayNum = dateObj.getUTCDay() || 7;
       dateObj.setUTCDate(dateObj.getUTCDate() + 4 - dayNum);
       const yearStart = new Date(Date.UTC(dateObj.getUTCFullYear(), 0, 1));
       const weekNo = Math.ceil((((dateObj - yearStart) / 86400000) + 1) / 7);
+
+      const fechaNormalizada = `${String(dia).padStart(2, '0')}-${mes}-${anio}`;
       return {
         anio: anio,
         mes: `${mes} - ${nombresMeses[mes] || mes}`,
-        semana: `Semana ${String(weekNo).padStart(2, '0')}`,
-        fecha: fechaStr
+        semana: `Semana ${String(weekNo).padStart(2, '0')} (${anio})`,
+        fecha: fechaNormalizada
       };
     }
 
@@ -434,7 +564,7 @@
       const spinner = document.getElementById('spinner');
       const statusText = document.getElementById('statusText');
       spinner.style.display = 'block';
-      statusText.textContent = 'Conectando con Google Drive, maestro de ORGs y lista de Aprobados...';
+      statusText.textContent = 'Conectando con Google Drive, maestro de ORGs, Aprobados y Estados...';
 
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
@@ -442,29 +572,43 @@
       window.recibirDatosGlobetek = function(payload) {
         clearTimeout(window.timerCarga);
 
-        // Cargar Vista 1 (Stock ORACLE Homologado)
+        // Vista 1: Stock ORACLE Homologado
         const fechaV1 = payload.cargaGlobetek.fechaArchivo || 'Sin fecha';
         document.getElementById('v1EtiquetaFecha').textContent = fechaV1;
         estadoVistas.v1.originales = (payload.cargaGlobetek.registros || []).map(r => ({
-          ...r, ...obtenerInfoFecha(r.Fecha_Carga)
+          ...r, ...obtenerInfoFechaFlexible(r.Fecha_Carga)
         }));
 
-        // Cargar Vista 2 (Equipos Cargados)
+        // Vista 2: Equipos Cargados
         estadoVistas.v2.originales = (payload.equiposCargados.registros || []).map(r => ({
-          ...r, ...obtenerInfoFecha(r.Fecha_Carga)
+          ...r, ...obtenerInfoFechaFlexible(r.Fecha_Carga)
         }));
+
+        // Vista 3: Estado de Equipos Cargados
+        const estData = payload.estadoEquipos || { fechaActualizacionArchivo: 'Sin fecha', registros: [] };
+        document.getElementById('v3EtiquetaFechaArchivo').textContent = estData.fechaActualizacionArchivo || 'Sin fecha';
+        estadoV3.originales = (estData.registros || []).map(r => {
+          const infoEnrol = obtenerInfoFechaFlexible(r.Fecha_Enrolamiento);
+          return {
+            ...r,
+            mesEnrol: infoEnrol.mes,
+            semanaEnrol: infoEnrol.semana,
+            fechaEnrolNorm: infoEnrol.fecha || r.Fecha_Enrolamiento
+          };
+        });
 
         spinner.style.display = 'none';
-        statusText.innerHTML = `✅ <b>Conectado:</b> ${estadoVistas.v1.originales.length.toLocaleString('es-CL')} equipos homologados en <i>Stock ORACLE Homologado</i> (${fechaV1}) | ${estadoVistas.v2.originales.length.toLocaleString('es-CL')} equipos en <i>Equipos Cargados</i>.`;
+        statusText.innerHTML = `✅ <b>Conectado:</b> ${estadoVistas.v1.originales.length.toLocaleString('es-CL')} homologados (${fechaV1}) | ${estadoVistas.v2.originales.length.toLocaleString('es-CL')} cargados | ${estadoV3.originales.length.toLocaleString('es-CL')} en estado de equipos.`;
 
         aplicarFiltros('v1');
         aplicarFiltros('v2');
+        aplicarFiltrosV3();
       };
 
       window.timerCarga = setTimeout(() => {
         spinner.style.display = 'none';
         statusText.innerHTML = `⚠️ <b>Tiempo de espera agotado:</b> Verifica tener iniciada tu sesión <b>@wom.cl</b> y revisa el <a href="${APPS_SCRIPT_URL}" target="_blank" class="underline font-bold">enlace de Apps Script</a>.`;
-      }, 20000);
+      }, 22000);
 
       const script = document.createElement('script');
       script.id = 'jsonpScript';
@@ -477,6 +621,7 @@
       document.body.appendChild(script);
     }
 
+    // ==================== LÓGICA VISTAS 1 Y 2 ====================
     function aplicarFiltros(v) {
       const st = estadoVistas[v];
       const vAnio   = st.tieneFiltrosFecha ? document.getElementById(`${v}FiltroAnio`).value : '';
@@ -528,31 +673,6 @@
       poblarDatalist(`${v}ListMarca`, [...new Set(filtrados.map(d => d.MARCA).filter(Boolean))].sort());
       poblarDatalist(`${v}ListSKU`, [...new Set(filtrados.map(d => d.SKU).filter(Boolean))].sort().slice(0, 300));
       poblarDatalist(`${v}ListDesc`, [...new Set(filtrados.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
-      poblarDatalist(`${v}ListImei`, [...new Set(filtrados.map(d => d.IMEI).filter(Boolean))].slice(0, 150));
-    }
-
-    function poblarSelect(id, opciones) {
-      const sel = document.getElementById(id);
-      const valActual = sel.value;
-      const textoDefault = sel.options[0].text;
-      sel.innerHTML = `<option value="">${textoDefault}</option>`;
-      opciones.forEach(op => {
-        const opt = document.createElement('option');
-        opt.value = op;
-        opt.textContent = op;
-        if (op === valActual) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    }
-
-    function poblarDatalist(id, opciones) {
-      const dl = document.getElementById(id);
-      dl.innerHTML = '';
-      opciones.forEach(op => {
-        const opt = document.createElement('option');
-        opt.value = op;
-        dl.appendChild(opt);
-      });
     }
 
     function actualizarKPIs(v) {
@@ -654,9 +774,9 @@
     }
 
     function limpiarFiltros(v) {
-      const camposTexto = ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'];
-      camposTexto.forEach(c => document.getElementById(`${v}${c}`).value = '');
-
+      ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'].forEach(c => {
+        document.getElementById(`${v}${c}`).value = '';
+      });
       if (estadoVistas[v].tieneFiltrosFecha) {
         ['FiltroAnio', 'FiltroMes', 'FiltroSemana', 'FiltroFecha'].forEach(c => {
           document.getElementById(`${v}${c}`).value = '';
@@ -671,16 +791,212 @@
       estadoVistas[v].filtrados.forEach(r => {
         filas.push(headers.map(h => `"${String(r[h] || '').replace(/"/g, '""')}"`).join(','));
       });
+      descargarBlobCSV(filas, v === 'v1' ? 'Stock_ORACLE_Homologado' : 'Equipos_Cargados');
+    }
+
+    // ==================== LÓGICA VISTA 3 (ESTADO DE EQUIPOS) ====================
+    function aplicarFiltrosV3() {
+      const fMes    = document.getElementById('v3FiltroMesEnrol').value;
+      const fSemana = document.getElementById('v3FiltroSemanaEnrol').value;
+      const fFecha  = document.getElementById('v3FiltroFechaEnrol').value;
+      const fEstado = document.getElementById('v3FiltroEstado').value;
+      const fSKU    = document.getElementById('v3FiltroSKU').value.trim().toLowerCase();
+      const fDesc   = document.getElementById('v3FiltroDesc').value.trim().toLowerCase();
+      const fImei   = document.getElementById('v3FiltroImei').value.trim().toLowerCase();
+
+      estadoV3.filtrados = estadoV3.originales.filter(item => {
+        if (fMes && item.mesEnrol !== fMes) return false;
+        if (fSemana && item.semanaEnrol !== fSemana) return false;
+        if (fFecha && item.fechaEnrolNorm !== fFecha) return false;
+        if (fEstado && item.Estado !== fEstado) return false;
+
+        if (fSKU && !String(item.SKU).toLowerCase().includes(fSKU)) return false;
+        if (fDesc && !String(item.DESCRIPCION).toLowerCase().includes(fDesc)) return false;
+        if (fImei && !String(item.IMEI).toLowerCase().includes(fImei)) return false;
+
+        return true;
+      });
+
+      actualizarOpcionesDinamicasV3();
+      actualizarKPIsV3();
+      estadoV3.pagina = 1;
+      renderizarTablaV3();
+    }
+
+    function actualizarOpcionesDinamicasV3() {
+      const flt = estadoV3.filtrados;
+      poblarSelect('v3FiltroMesEnrol', [...new Set(flt.map(d => d.mesEnrol).filter(Boolean))].sort());
+      poblarSelect('v3FiltroSemanaEnrol', [...new Set(flt.map(d => d.semanaEnrol).filter(Boolean))].sort());
+      poblarSelect('v3FiltroFechaEnrol', [...new Set(flt.map(d => d.fechaEnrolNorm).filter(Boolean))]);
+      poblarSelect('v3FiltroEstado', [...new Set(flt.map(d => d.Estado).filter(Boolean))].sort());
+
+      poblarDatalist('v3ListSKU', [...new Set(flt.map(d => d.SKU).filter(Boolean))].sort().slice(0, 300));
+      poblarDatalist('v3ListDesc', [...new Set(flt.map(d => d.DESCRIPCION).filter(Boolean))].sort().slice(0, 300));
+    }
+
+    function actualizarKPIsV3() {
+      const contenedor = document.getElementById('v3ContenedorKPIs');
+      const total = estadoV3.filtrados.length;
+
+      // Contar equipos por cada estado
+      const conteoEstados = {};
+      estadoV3.filtrados.forEach(item => {
+        const est = item.Estado || 'Sin Estado';
+        conteoEstados[est] = (conteoEstados[est] || 0) + 1;
+      });
+
+      // Asegurar que "Activo" y "Pendiente por activacion" siempre se muestren primero, seguidos por cualquier otro estado
+      const estadosBase = ['Activo', 'Pendiente por activacion'];
+      const mapaNormalizado = {};
+      Object.keys(conteoEstados).forEach(k => {
+        mapaNormalizado[k.toLowerCase()] = { nombreReal: k, cantidad: conteoEstados[k] };
+      });
+
+      const listaTarjetas = [];
+      const yaAgregados = new Set();
+
+      estadosBase.forEach(base => {
+        const encontrado = mapaNormalizado[base.toLowerCase()];
+        if (encontrado) {
+          listaTarjetas.push(encontrado);
+          yaAgregados.add(encontrado.nombreReal.toLowerCase());
+        } else {
+          listaTarjetas.push({ nombreReal: base, cantidad: 0 });
+          yaAgregados.add(base.toLowerCase());
+        }
+      });
+
+      // Agregar cualquier estado adicional que aparezca en los datos
+      Object.entries(conteoEstados)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([est, cant]) => {
+          if (!yaAgregados.has(est.toLowerCase())) {
+            listaTarjetas.push({ nombreReal: est, cantidad: cant });
+          }
+        });
+
+      // Tarjeta 1: Total Equipos
+      let html = `
+        <div class="wom-card p-5 border-t-4 border-[#4B116F]">
+          <p class="text-xs font-bold uppercase text-gray-400">Total Equipos</p>
+          <p class="text-3xl font-black text-[#4B116F] mt-1">${total.toLocaleString('es-CL')}</p>
+          <p class="text-[11px] font-semibold text-gray-400 mt-1">100,0% de la selección</p>
+        </div>
+      `;
+
+      // Tarjetas por cada estado con porcentaje pequeño abajo
+      const coloresBorde = ['#E6007E', '#781C9E', '#9333EA', '#DB2777', '#6D28D9'];
+      listaTarjetas.forEach((item, idx) => {
+        const pct = total > 0 ? ((item.cantidad / total) * 100).toFixed(1).replace('.', ',') : '0,0';
+        const color = coloresBorde[idx % coloresBorde.length];
+        html += `
+          <div class="wom-card p-5 border-t-4" style="border-top-color: ${color}">
+            <p class="text-xs font-bold uppercase text-gray-400 truncate" title="${item.nombreReal}">${item.nombreReal}</p>
+            <p class="text-3xl font-black text-gray-800 mt-1">${item.cantidad.toLocaleString('es-CL')}</p>
+            <p class="text-[11px] font-bold text-[#E6007E] mt-1">${pct}% del total</p>
+          </div>
+        `;
+      });
+
+      contenedor.innerHTML = html;
+    }
+
+    function renderizarTablaV3() {
+      const tbody = document.getElementById('v3TablaCuerpo');
+      tbody.innerHTML = '';
+
+      const totalPaginas = Math.max(1, Math.ceil(estadoV3.filtrados.length / filasPorPagina));
+      const inicio = (estadoV3.pagina - 1) * filasPorPagina;
+      const slice = estadoV3.filtrados.slice(inicio, inicio + filasPorPagina);
+
+      slice.forEach(row => {
+        const esActivo = row.Estado.toLowerCase() === 'activo';
+        const badgeClass = esActivo
+          ? 'bg-emerald-100 text-emerald-800'
+          : 'bg-amber-100 text-amber-800';
+
+        const skuNoEncontrado = row.SKU === 'No encontrado';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-purple-50/70 transition';
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 font-mono text-xs font-semibold text-gray-800 whitespace-nowrap">${row.IMEI}</td>
+          <td class="px-4 py-2.5 font-mono text-xs ${skuNoEncontrado ? 'text-gray-400 italic' : 'font-semibold text-[#4B116F]'} whitespace-nowrap">${row.SKU}</td>
+          <td class="px-4 py-2.5 text-xs ${skuNoEncontrado ? 'text-gray-400 italic' : 'text-gray-800'}">${row.DESCRIPCION}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">${row.Actualizado_por}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">${row.Fecha_Actualizacion}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">${row.Fecha_Enrolamiento}</td>
+          <td class="px-4 py-2.5 text-xs whitespace-nowrap">
+            <span class="px-2.5 py-0.5 rounded-full font-bold text-[11px] ${badgeClass}">${row.Estado}</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('v3TablaContador').textContent =
+        `Mostrando ${slice.length} de ${estadoV3.filtrados.length.toLocaleString('es-CL')} registros filtrados`;
+      document.getElementById('v3InfoPagina').textContent = `Página ${estadoV3.pagina} de ${totalPaginas}`;
+      document.getElementById('v3BtnPrev').disabled = estadoV3.pagina <= 1;
+      document.getElementById('v3BtnNext').disabled = estadoV3.pagina >= totalPaginas;
+    }
+
+    function cambiarPaginaV3(delta) {
+      estadoV3.pagina += delta;
+      renderizarTablaV3();
+    }
+
+    function limpiarFiltrosV3() {
+      ['v3FiltroMesEnrol', 'v3FiltroSemanaEnrol', 'v3FiltroFechaEnrol', 'v3FiltroEstado',
+       'v3FiltroSKU', 'v3FiltroDesc', 'v3FiltroImei'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      aplicarFiltrosV3();
+    }
+
+    function exportarCSVV3() {
+      const headers = ['IMEI', 'SKU', 'DESCRIPCION', 'Actualizado por', 'Fecha de Actualizacion', 'Fecha de enrolamiento', 'Estado'];
+      const filas = [headers.join(',')];
+      estadoV3.filtrados.forEach(r => {
+        const vals = [r.IMEI, r.SKU, r.DESCRIPCION, r.Actualizado_por, r.Fecha_Actualizacion, r.Fecha_Enrolamiento, r.Estado];
+        filas.push(vals.map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(','));
+      });
+      descargarBlobCSV(filas, 'Estado_Equipos_Cargados');
+    }
+
+    // ==================== UTILIDADES COMPARTIDAS ====================
+    function poblarSelect(id, opciones) {
+      const sel = document.getElementById(id);
+      const valActual = sel.value;
+      const textoDefault = sel.options[0].text;
+      sel.innerHTML = `<option value="">${textoDefault}</option>`;
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        opt.textContent = op;
+        if (op === valActual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function poblarDatalist(id, opciones) {
+      const dl = document.getElementById(id);
+      dl.innerHTML = '';
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        dl.appendChild(opt);
+      });
+    }
+
+    function descargarBlobCSV(filas, prefijo) {
       const blob = new Blob(["\uFEFF" + filas.join('\n')], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const prefijo = v === 'v1' ? 'Stock_ORACLE_Homologado' : 'Equipos_Cargados';
       a.href = url;
       a.download = `${prefijo}_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
     }
 
-    // Registrar eventos para Vista 1 y Vista 2
+    // Listeners Vistas 1 y 2
     ['v1', 'v2'].forEach(v => {
       ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'].forEach(c => {
         document.getElementById(`${v}${c}`).addEventListener('input', () => aplicarFiltros(v));
@@ -689,6 +1005,14 @@
 
     ['FiltroAnio', 'FiltroMes', 'FiltroSemana', 'FiltroFecha'].forEach(c => {
       document.getElementById(`v2${c}`).addEventListener('change', () => aplicarFiltros('v2'));
+    });
+
+    // Listeners Vista 3
+    ['v3FiltroMesEnrol', 'v3FiltroSemanaEnrol', 'v3FiltroFechaEnrol', 'v3FiltroEstado'].forEach(id => {
+      document.getElementById(id).addEventListener('change', aplicarFiltrosV3);
+    });
+    ['v3FiltroSKU', 'v3FiltroDesc', 'v3FiltroImei'].forEach(id => {
+      document.getElementById(id).addEventListener('input', aplicarFiltrosV3);
     });
 
     window.addEventListener('DOMContentLoaded', cargarDatos);
