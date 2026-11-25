@@ -1045,3 +1045,112 @@
       slice.forEach(row => {
         const estLower = row.Estado.toLowerCase();
         const esActivado = estLower === 'activado' || estLower === 'activo';
+        const badgeClass = esActivado
+          ? 'bg-emerald-100 text-emerald-800'
+          : 'bg-amber-100 text-amber-800';
+
+        const skuNoEncontrado = row.SKU === 'No encontrado';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-purple-50/70 transition';
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 font-mono text-xs font-semibold text-gray-800 whitespace-nowrap">${row.IMEI}</td>
+          <td class="px-4 py-2.5 font-mono text-xs text-gray-500 whitespace-nowrap">${row.TAC}</td>
+          <td class="px-4 py-2.5 font-mono text-xs ${skuNoEncontrado ? 'text-gray-400 italic' : 'font-semibold text-[#4B116F]'} whitespace-nowrap">${row.SKU}</td>
+          <td class="px-4 py-2.5 text-xs ${skuNoEncontrado ? 'text-gray-400 italic' : 'text-gray-800'}">${row.DESCRIPCION}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">${row.Actualizado_por}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">${row.Fecha_Actualizacion}</td>
+          <td class="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">${row.Fecha_Enrolamiento}</td>
+          <td class="px-4 py-2.5 text-xs whitespace-nowrap">
+            <span class="px-2.5 py-0.5 rounded-full font-bold text-[11px] ${badgeClass}">${row.Estado}</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('v4TablaContador').textContent =
+        `Mostrando ${slice.length} de ${estadoV4.filtrados.length.toLocaleString('es-CL')} registros filtrados`;
+      document.getElementById('v4InfoPagina').textContent = `Página ${estadoV4.pagina} de ${totalPaginas}`;
+      document.getElementById('v4BtnPrev').disabled = estadoV4.pagina <= 1;
+      document.getElementById('v4BtnNext').disabled = estadoV4.pagina >= totalPaginas;
+    }
+
+    function cambiarPaginaV4(delta) {
+      estadoV4.pagina += delta;
+      renderizarTablaV4();
+    }
+
+    function limpiarFiltrosV4() {
+      ['v4FiltroMesEnrol', 'v4FiltroSemanaEnrol', 'v4FiltroFechaEnrol', 'v4FiltroEstado',
+       'v4FiltroSKU', 'v4FiltroDesc', 'v4FiltroImei'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      aplicarFiltrosV4();
+    }
+
+    function exportarCSVV4() {
+      const headers = ['IMEI', 'TAC', 'SKU', 'DESCRIPCION', 'Actualizado por', 'Fecha de Actualizacion', 'Fecha de enrolamiento', 'Estado'];
+      const filas = [headers.join(',')];
+      estadoV4.filtrados.forEach(r => {
+        const vals = [r.IMEI, r.TAC, r.SKU, r.DESCRIPCION, r.Actualizado_por, r.Fecha_Actualizacion, r.Fecha_Enrolamiento, r.Estado];
+        filas.push(vals.map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(','));
+      });
+      descargarBlobCSV(filas, 'Estado_Equipos_Cargados');
+    }
+
+    // ==================== UTILIDADES COMPARTIDAS ====================
+    function poblarSelect(id, opciones) {
+      const sel = document.getElementById(id);
+      const valActual = sel.value;
+      const textoDefault = sel.options[0].text;
+      sel.innerHTML = `<option value="">${textoDefault}</option>`;
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        opt.textContent = op;
+        if (op === valActual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function poblarDatalist(id, opciones) {
+      const dl = document.getElementById(id);
+      dl.innerHTML = '';
+      opciones.forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op;
+        dl.appendChild(opt);
+      });
+    }
+
+    function descargarBlobCSV(filas, prefijo) {
+      const blob = new Blob(["\uFEFF" + filas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${prefijo}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // Listeners Vistas 1, 2 y 3
+    ['v1', 'v2', 'v3'].forEach(v => {
+      ['FiltroTipoOrg', 'FiltroOrg', 'FiltroMarca', 'FiltroSKU', 'FiltroDesc', 'FiltroImei'].forEach(c => {
+        document.getElementById(`${v}${c}`).addEventListener('input', () => aplicarFiltros(v));
+      });
+    });
+
+    ['FiltroAnio', 'FiltroMes', 'FiltroSemana', 'FiltroFecha'].forEach(c => {
+      document.getElementById(`v2${c}`).addEventListener('change', () => aplicarFiltros('v2'));
+    });
+
+    // Listeners Vista 4
+    ['v4FiltroMesEnrol', 'v4FiltroSemanaEnrol', 'v4FiltroFechaEnrol', 'v4FiltroEstado'].forEach(id => {
+      document.getElementById(id).addEventListener('change', aplicarFiltrosV4);
+    });
+    ['v4FiltroSKU', 'v4FiltroDesc', 'v4FiltroImei'].forEach(id => {
+      document.getElementById(id).addEventListener('input', aplicarFiltrosV4);
+    });
+
+    window.addEventListener('DOMContentLoaded', cargarDatos);
+  </script>
+</body>
+</html>
